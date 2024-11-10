@@ -349,16 +349,16 @@ int main(){
         hits += resp.hit_miss;
         
         int misses = i-hits;
-        int hitPercent = (hits/(double)REQUESTS) * 100;
-        int missPercent = (hits/(double)REQUESTS) * 100;
+        double hitPercent = (hits/(double)REQUESTS) * 100;
+        double missPercent = (misses/(double)REQUESTS) * 100;
 
         cout << "Hits: " << hits << endl;
         cout << "Misses: " << misses << endl;
     }
 
     int misses = REQUESTS-hits;
-    int hitPercent = (hits/(double)REQUESTS) * 100;
-    int missPercent = (hits/(double)REQUESTS) * 100;
+    double hitPercent = (hits/(double)REQUESTS) * 100;
+    double missPercent = (misses/(double)REQUESTS) * 100;
 
     cout << "Hits: " << hits << "Hit percentage: " << hitPercent<< endl;
     cout << "Misses: " << misses << "Miss percentage: " << missPercent << endl;
