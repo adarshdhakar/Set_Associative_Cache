@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+//******************************Set Associative Cache******************************//
 #define WAYS 8
 #define SETS 64
 #define WORDS_PER_BLOCK 16
@@ -12,7 +13,9 @@ using namespace std;
 #define WRITE 1
 #define MISS 0
 #define HIT 1
+//*********************************************************************************//
 
+//**************************String to Int & Int to String**************************//
 string to_str(uint64_t num)
 {
     bitset<40> binary(num);
@@ -35,7 +38,9 @@ uint32_t to_int(string binaryStr)
 
     return decimalValue;
 }
+//*********************************************************************************//
 
+//*********************************Class for Block*********************************//
 class Block {
     public:
         int state;
@@ -47,7 +52,9 @@ class Block {
             this->dataBlock = vector<int>();
         }
 };
+//*********************************************************************************//
 
+//***************************CPU Request & CPU Response****************************//
 class CPUReq {
     public:
         uint32_t Index;
@@ -57,6 +64,7 @@ class CPUReq {
         int data;
         int read_write;
 
+        //-----------------------Random Value Generator from Normal Distribution-----------------------//
         random_device rd;
         mt19937 gen;
         normal_distribution<double> dist;
@@ -73,6 +81,7 @@ class CPUReq {
 
             return result * 4;
         }
+        //---------------------------------------------------------------------------------------------//
 
         void generateRequest(){
             this->address = generate_normal_random_address(100, 110);
@@ -99,7 +108,9 @@ class CPUResp {
             this->hit_miss = MISS;
         }
 };
+//*********************************************************************************//
 
+//********************************MemReq & MemResp*********************************//
 class MemReq {
     public:
         uint32_t Index;
@@ -145,7 +156,9 @@ class MemResp {
             // cout << "Written (Write - No Allocate) to the memory when miss" << endl;
         }
 };
+//*********************************************************************************//
 
+//**********************************CACHE CLASS************************************//
 class Cache {
     public:
         vector<vector<Block>> cacheArray{SETS, vector<Block>(WAYS)};
@@ -159,6 +172,7 @@ class Cache {
             }
         }
 
+        //***************************Read Request****************************//
         void readReq(CPUReq &req, CPUResp &resp){
             int index = req.Index;
             auto indexedSet = this->cacheArray[index];
@@ -193,7 +207,9 @@ class Cache {
             int offset = req.bitOffset/4;
             resp.data = B.dataBlock[offset];
         }
+        //*********************************************************************//
 
+         //***************************Write Request****************************//
         void writeReq(CPUReq &req, CPUResp &resp){
             int index = req.Index;
             auto indexedSet = this->cacheArray[index];
@@ -221,6 +237,7 @@ class Cache {
 
             resp.hit_miss = MISS;
         }
+         //********************************************************************//
 
         void generateMemoryRequest(MemReq &memReq, CPUReq &req){
             memReq.address = req.address;
@@ -238,14 +255,20 @@ class Cache {
             // cout << "Written through into memory when Hit at Memory Block No. : " << memBlockNo << " with offset : " << offset<< endl;
         }
 };
+//*********************************************************************************//
 
+//**********************************MAIN FUNCTION**********************************//
 int main(){
-    // cout << "40-addressable memory" << endl;
+    cout << endl;
+    cout << "40-addressable memory" << endl;
+    
     srand(time(NULL));
     Cache cache;
 
     int hits = 0;
-    int REQUESTS = 100000;
+    int REQUESTS = 10000000;
+    cout << REQUESTS << " Requests" << endl;
+    cout << endl;
 
     CPUReq req;
 
@@ -260,14 +283,71 @@ int main(){
         
         int misses = i-hits;
 
-        // cout << "Hits: " << hits << endl;
-        // cout << "Misses: " << misses << endl;
+        // if(REQUESTS < 10){
+        //     cout << "......................................";
+        // }
+        // else if(REQUESTS < 1e3)
+        // {
+        //     if(i % (REQUESTS/10) == 0)
+        //     {
+        //         cout << "#";
+        //     }
+        // }
+        // else if(REQUESTS < 1e5)
+        // {
+        //     if(i % (REQUESTS/1000) == 0)
+        //     {
+        //         cout << "#";
+        //     }
+        // }
+        // else if(REQUESTS < 1e7)
+        // {
+        //     if(i % (REQUESTS/100000) == 0)
+        //     {
+        //         cout << "#";
+        //     }
+        // }
+        // else 
+        // {
+        //     if(i % (REQUESTS/10000000) == 0)
+        //     {
+        //         cout << "#";
+        //     }
+        // }
+
+        if(REQUESTS < 10) 
+        {
+            cout << endl;
+            cout << "Progress at " << ((i*100) / REQUESTS) << endl;
+            int misses = REQUESTS-hits;
+            double hitPercent = (hits/(double)REQUESTS) * 100;
+            double missPercent = (misses/(double)REQUESTS) * 100;
+            
+            cout << "Hits:   " << hits << "  Hit percentage: " << hitPercent<< endl;
+            cout << "Misses: " << misses << "  Miss percentage: " << missPercent << endl;
+        }
+        
+        else if(i % (REQUESTS/10) == 0)
+        {   
+            cout << endl;
+            cout << "Progress at " << ((i*100) / REQUESTS) << endl;
+            int misses = REQUESTS-hits;
+            double hitPercent = (hits/(double)REQUESTS) * 100;
+            double missPercent = (misses/(double)REQUESTS) * 100;
+            cout << "Hits:   " << hits << "  Hit percentage: " << hitPercent<< endl;
+            cout << "Misses: " << misses << "  Miss percentage: " << missPercent << endl;
+            // cout << endl;
+            // cout << endl;
+        }
     }
 
     int misses = REQUESTS-hits;
     double hitPercent = (hits/(double)REQUESTS) * 100;
     double missPercent = (misses/(double)REQUESTS) * 100;
-
-    cout << "Hits: " << hits << " Hit percentage: " << hitPercent<< endl;
-    cout << "Misses: " << misses << " Miss percentage: " << missPercent << endl;
+    
+    cout << endl;
+    cout << "Hits:   " << hits << "  Hit percentage: " << hitPercent<< endl;
+    cout << "Misses: " << misses << "  Miss percentage: " << missPercent << endl;
 }
+//*********************************************************************************//
+
