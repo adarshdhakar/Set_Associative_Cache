@@ -69,14 +69,27 @@ class CPUReq {
         int data;
         int read_write;
 
-        CPUReq(){
+                //-----------------------Random Value Generator from Normal Distribution-----------------------//
+        random_device rd;
+        mt19937 gen;
+        normal_distribution<double> dist;
 
+        CPUReq() : gen(rd()), dist(10000, 3000) {} 
+
+        uint64_t generate_normal_random_address(long long mean, long long stddev) {
+            dist = normal_distribution<double>(mean, stddev);
+            uint64_t result;
+
+            do {
+                result = (dist(gen));
+            } while (result < 0);
+
+            return result * 4;
         }
+        //---------------------------------------------------------------------------------------------//
 
         void generateRequest(){
-            int max_value = 1 << 14;  
-
-            this->address = (rand() % max_value) * 4;
+            this->address = generate_normal_random_address(100, 110);
 
             string binaryAddress = to_str(address).substr(12, 20);
             string idx = binaryAddress.substr(0, 6);
@@ -87,7 +100,7 @@ class CPUReq {
             this->Tag = to_int(tag);
             this->bitOffset = to_int(off);
             this->data = rand();
-            // this->read_write = rand()%2;
+            this->read_write = rand()%2;
             this->read_write = READ;
 
             // cout << this->Index << " " << this->Tag << " " << this->bitOffset << endl;
@@ -98,13 +111,13 @@ class CPUReq {
             //     << off << " (" << this->bitOffset << ") "
             //     << endl;
             
-            // if(read_write == READ){
-            //     cout << "Read Request" << endl;
-            // }
-            // else {
-            //     cout << "Request data -> " << this->data << endl;
-            //     cout << "Write Request" << endl;
-            // }
+            if(read_write == READ){
+                cout << "Read Request" << endl;
+            }
+            else {
+                cout << "Request data -> " << this->data << endl;
+                cout << "Write Request" << endl;
+            }
         }
         
         void wait(){
@@ -131,24 +144,15 @@ class MemReq {
         uint32_t address;
         int data;
         int read_write;
-
-        MemReq(){
-
-        }
 };
 
 class MemResp {
     public:
         uint32_t Tag;
         vector<int> dataBlock;
-
-        MemResp(){
-
-        }
         
         void fulfillMemReq(MemReq &memReq){
             if(memReq.read_write == READ){
-                // cout << "MemRequest Sent" << endl;
                 this->fulfillReadRequest(memReq);
             }
             else {
@@ -158,10 +162,8 @@ class MemResp {
 
         void fulfillReadRequest(MemReq &memReq){
             int memBlockNo = memReq.Index*memReq.Tag;
-            // cout << "memBlockNo: " << memBlockNo << endl;
             this->Tag = memReq.Tag;
             this->dataBlock = main_memory[memBlockNo];
-            // cout << "No Error" << endl;
         }
 
         void fullfillWriteRequest(MemReq &memReq){
@@ -177,9 +179,6 @@ class Cache {
     public:
         vector<vector<Block>> cacheArray{SETS, vector<Block>(WAYS)};
 
-        Cache() {
-            
-        }
         void processRequest(CPUReq &req, CPUResp &resp) {
             if(req.read_write == READ){
                 this->readReq(req, resp);
@@ -191,7 +190,7 @@ class Cache {
         void readReq(CPUReq &req, CPUResp &resp){
             int index = req.Index;
             auto indexedSet = this->cacheArray[index];
-            // cout << "Set selected " << index << endl;
+
             int x = 0;
             for(auto &B : indexedSet){
                 if(B.tag == req.Tag && B.state == VALID){
@@ -205,22 +204,18 @@ class Cache {
                     req.wait();
                     return;
                 }
-                // cout << "Missed in " << x++ << "th iteration" << endl;
             }
 
             int evictedBlock = rand()%WAYS;
-            // cout << "Evicted block number " << evictedBlock << endl;
             Block B;
             B.state = MISPENDING;
             B.tag = req.Tag;
 
             MemReq memReq;
             this->generateMemoryRequest(memReq, req);
-            // cout << "Mem request generated" << endl;
 
             MemResp memResp;
             memResp.fulfillMemReq(memReq);
-            // cout << "Mem response generated" << endl;
 
             B.dataBlock = memResp.dataBlock;
             B.state = VALID;
@@ -241,7 +236,6 @@ class Cache {
                     resp.hit_miss = HIT;
                     resp.block = B;
                     int offset = req.bitOffset/4;
-                    // resp.data = B.dataBlock[offset];
                     B.dataBlock[offset] = req.data;
 
                     //write through
@@ -272,13 +266,6 @@ class Cache {
             memReq.data = req.data;
             memReq.bitOffset = req.bitOffset;
             memReq.read_write = req.read_write;
-
-            // cout << "memReq.address " << memReq.address << endl;
-            // cout << "memReq.Index " << memReq.Index << endl;
-            // cout << "memReq.Tag " << memReq.Tag << endl;
-            // cout << "memReq.data " << memReq.data << endl;
-            // cout << "memReq.bitOffset " << memReq.bitOffset << endl;
-            // cout << "memReq.read_write " << memReq.read_write << endl;
         }
 
         void writeThroughIntoMemory(CPUReq &req){
@@ -331,21 +318,20 @@ void printCache(Cache &cache){
 }
 
 int main(){
-    cout << "20-addressable memory" << endl;
+    cout << "20-addressable memory\n" << endl;
     Cache cache;
 
     initializeMainMemoryBlocks(); 
     int hits = 0;
     int REQUESTS = 10000;
 
+    CPUReq req;
     for(int i = 1; i <= REQUESTS; i ++){
-        CPUReq req;
-        req.generateRequest();
         cout << "Request " << i << " generated" << endl;
+        req.generateRequest();
         CPUResp resp;
         cache.processRequest(req, resp);
-        // printCache(cache);
-        cout << "Request " << i << " processed" << endl;
+        
         hits += resp.hit_miss;
         
         int misses = i-hits;
@@ -354,6 +340,8 @@ int main(){
 
         cout << "Hits: " << hits << endl;
         cout << "Misses: " << misses << endl;
+        cout << "Request " << i << " processed" << endl;
+        cout << endl;
     }
 
     int misses = REQUESTS-hits;
@@ -365,4 +353,5 @@ int main(){
 
     // printMem();
     // printCache(cache);
+    return 0;
 }

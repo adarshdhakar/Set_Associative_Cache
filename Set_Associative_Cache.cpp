@@ -266,71 +266,44 @@ int main(){
 
     int hits = 0;
     int REQUESTS = 10000000;
-    cout << REQUESTS << " Requests\n";
+    cout << REQUESTS << " Requests\n\n";
 
     CPUReq req;
 
     for(int i = 1; i <= REQUESTS; i ++){
         req.generateRequest();
-        cout << "\nRequest " << i << " generated";
+        // cout << "\nRequest " << i << " generated";
         CPUResp resp;
         cache.processRequest(req, resp);
         hits += resp.hit_miss;
         
         int misses = i-hits;
-
-        // if(REQUESTS < 10){
-        //     cout << "......................................";
-        // }
-        // else if(REQUESTS < 1e3)
-        // {
-        //     if(i % (REQUESTS/10) == 0)
-        //     {
-        //         cout << "#";
-        //     }
-        // }
-        // else if(REQUESTS < 1e5)
-        // {
-        //     if(i % (REQUESTS/1000) == 0)
-        //     {
-        //         cout << "#";
-        //     }
-        // }
-        // else if(REQUESTS < 1e7)
-        // {
-        //     if(i % (REQUESTS/100000) == 0)
-        //     {
-        //         cout << "#";
-        //     }
-        // }
-        // else 
-        // {
-        //     if(i % (REQUESTS/10000000) == 0)
-        //     {
-        //         cout << "#";
-        //     }
-        // }
-
+        
+        if(i % (REQUESTS/100) == 0)
+        {
+            cout << "#";
+        }
+        
         if(i % (REQUESTS/10) == 0)
         {   
-            cout << "\nProgress at " << ((i*100) / REQUESTS) << endl;
+            cout << "\nProgress at " << ((i*100) / REQUESTS) << "% Requests\n";
             int misses = i-hits;
             double hitPercent = (hits/(double)i) * 100;
             double missPercent = (misses/(double)i) * 100;
-            cout << "Hits:   " << hits << "  Hit percentage: " << hitPercent << endl;
-            cout << "Misses: " << misses << "  Miss percentage: " << missPercent << endl;
+            cout << "Hits:   " << hits << "  Hit percentage: " << hitPercent << "\n";
+            cout << "Misses: " << misses << "  Miss percentage: " << missPercent << "\n\n";
         }
 
-        cout << "Request " << i << " processed\n";
+        // cout << "Request " << i << " processed\n";
     }
 
     int misses = REQUESTS-hits;
     double hitPercent = (hits/(double)REQUESTS) * 100;
     double missPercent = (misses/(double)REQUESTS) * 100;
     
-    cout << endl;
-    cout << "Hits:   " << hits << "  Hit percentage: " << hitPercent<< endl;
-    cout << "Misses: " << misses << "  Miss percentage: " << missPercent << endl;
+    cout << "\nFinal Hit Percentage\n";
+    cout << "Hits:   " << hits << "  Hit percentage: " << hitPercent<< "\n";
+    cout << "Misses: " << misses << "  Miss percentage: " << missPercent << "\n";
 }
 //*********************************************************************************//
 
